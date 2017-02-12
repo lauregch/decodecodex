@@ -4,7 +4,9 @@ function startsWith( haystack, needle ) {
 }
 
 var sourceUrl = 'http://www.lemonde.fr/webservice/decodex/updates';
-var email = '';
+
+var email = Session.getActiveUser().getEmail();
+var github = 'https://github.com/lauregch/decodecodex';
 
 var notes = {
   0 : { name : 'Collaboratif',    color : '#A2A9AE' },
@@ -18,7 +20,7 @@ var dataSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Data');
 var logSheet  = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log');
 var timestamp = new Date().toLocaleString();
    
-var existingData = null;
+var existingData = [];
 var newsLog = [];
 var colors = [];
 
@@ -92,7 +94,7 @@ function fetchDecodexData() {
           
         });
         
-        if ( ! found ) {
+        if ( ! found && existingData.length ) {
           addLog([ name, 'Site ajouté', note, desc, '', '' ]);
         }
         else {
@@ -124,7 +126,7 @@ function fetchDecodexData() {
 function fillColors() {
  
   colors.forEach( function(color, i) {
-    dataSheet.getRange( i+1, 6, 1, 1 ).setBackground( color );
+    dataSheet.getRange( dataSheet.getFrozenRows()+i, 6, 1, 1 ).setBackground( color );
   });
   
 }
@@ -135,11 +137,10 @@ function prettify() {
   if ( dataSheet.getLastRow() ) {
     fillColors();
     dataSheet.sort(5);
-    dataSheet.setFrozenRows(1);
-    dataSheet.getRange( 1, 1, dataSheet.getLastRow(), dataSheet.getLastColumn() ).setFontSize('9').setVerticalAlignment('middle');
-    dataSheet.getRange( 2, 1, dataSheet.getLastRow(), 4 ).setFontSize('7');
-    dataSheet.getRange( 2, 5, dataSheet.getLastRow() ).setFontWeight('bold');
-    dataSheet.getRange( 1, 1 ).setFontWeight('bold');
+    dataSheet.getRange( dataSheet.getFrozenRows()+1, 1, dataSheet.getLastRow(), dataSheet.getLastColumn() ).setFontSize('9').setVerticalAlignment('middle');
+    dataSheet.getRange( dataSheet.getFrozenRows()+1, 1, dataSheet.getLastRow(), 4 ).setFontSize('7');
+    dataSheet.getRange( dataSheet.getFrozenRows()+1, 5, dataSheet.getLastRow() ).setFontWeight('bold');
+    dataSheet.getRange( 1, 1, dataSheet.getFrozenRows(), 2 ).setFontWeight('bold');
   }
   
   if ( logSheet.getLastRow() ) {
@@ -156,12 +157,16 @@ function prettify() {
   
 function __main() {
   
-  existingData = dataSheet.getRange( 2, 1, dataSheet.getLastRow(), dataSheet.getLastColumn() ).getValues();
+  if ( dataSheet.getLastRow() ) {
+    existingData = dataSheet.getRange( dataSheet.getFrozenRows()+1, 1, dataSheet.getLastRow(), dataSheet.getLastColumn() ).getValues();
+  }
   
   var newdata = fetchDecodexData();
   dataSheet.clear();
-  dataSheet.getRange('A1').setValue( timestamp );
-  dataSheet.getRange( 2, 1, newdata.length, newdata[0].length ).setValues( newdata );
+  dataSheet.getRange('A1:B1').setValues([['Last refresh', timestamp]]);
+  dataSheet.getRange('A2:B2').setValues([['Source code', github]]);
+  dataSheet.setFrozenRows(2);
+  dataSheet.getRange( dataSheet.getFrozenRows()+1, 1, newdata.length, newdata[0].length ).setValues( newdata );
   
   if ( ! newsLog.length ) {
     var logHeader = [ '', '', '', 'Note', 'Description', 'Ancienne note', 'Ancienne description' ];
