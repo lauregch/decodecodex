@@ -1,8 +1,3 @@
-
-function startsWith( haystack, needle ) {
-  return haystack.lastIndexOf( needle, 0 ) === 0;
-}
-
 var sourceUrl = 'http://www.lemonde.fr/webservice/decodex/updates';
 
 var email = Session.getActiveUser().getEmail();
@@ -24,6 +19,11 @@ var existingData = [];
 var newsLog = [];
 var colors = [];
 
+
+
+function startsWith( haystack, needle ) {
+  return haystack.lastIndexOf( needle, 0 ) === 0;
+}
 
 function addLog( dataArray ) {
   newsLog.push( [timestamp].concat(dataArray) );
@@ -56,7 +56,6 @@ function fetchDecodexData() {
   
   var existingCopy = JSON.parse(JSON.stringify(existingData));
   
-
   for ( var index in json.sites ) {
    
     if ( json.sites.hasOwnProperty(index) ) {
@@ -72,7 +71,6 @@ function fetchDecodexData() {
                 
         data.push( urls.concat([ name, note, desc ]) );
         colors[ data.length ] = notes[ site[0] ].color;
-        
         
         var found = existingData.some( function(ex, i) {
 
@@ -123,19 +121,12 @@ function fetchDecodexData() {
 }
 
 
-function fillColors() {
- 
-  colors.forEach( function(color, i) {
-    dataSheet.getRange( dataSheet.getFrozenRows()+i, 6, 1, 1 ).setBackground( color );
-  });
-  
-}
-
-
 function prettify() {
   
   if ( dataSheet.getLastRow() ) {
-    fillColors();
+    colors.forEach( function(color, i) {
+      dataSheet.getRange( dataSheet.getFrozenRows()+i, 6, 1, 1 ).setBackground( color );
+    });
     dataSheet.sort(5);
     dataSheet.getRange( dataSheet.getFrozenRows()+1, 1, dataSheet.getLastRow(), dataSheet.getLastColumn() ).setFontSize('9').setVerticalAlignment('middle');
     dataSheet.getRange( dataSheet.getFrozenRows()+1, 1, dataSheet.getLastRow(), 4 ).setFontSize('7');
@@ -144,7 +135,6 @@ function prettify() {
   }
   
   if ( logSheet.getLastRow() ) {
-    logSheet.setFrozenRows(1);
     logSheet.getRange( 1, 1, 1, 7 ).setFontWeight('bold');
     logSheet.getRange( 1, 1, logSheet.getLastRow(), logSheet.getLastColumn() ).setFontSize('9').setVerticalAlignment('middle');
     logSheet.getRange( 1, 1, logSheet.getLastRow(), 2 ).setFontWeight('bold');
@@ -168,6 +158,7 @@ function __main() {
   dataSheet.setFrozenRows(2);
   dataSheet.getRange( dataSheet.getFrozenRows()+1, 1, newdata.length, newdata[0].length ).setValues( newdata );
   
+  logSheet.setFrozenRows(1);
   if ( ! newsLog.length ) {
     var logHeader = [ '', '', '', 'Note', 'Description', 'Ancienne note', 'Ancienne description' ];
     logSheet.getRange( 1, 1, 1, logHeader.length ).setValues( [logHeader] );
