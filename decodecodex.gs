@@ -11,8 +11,15 @@ var notes = {
   4 : { name : 'Plutôt fiable',   color : '#468847' }
 };
 
-var dataSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Data');
-var logSheet  = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Log');
+var spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+
+var dataSheet = spreadSheet.getSheetByName('Data')
+if ( ! dataSheet ) {
+  dataSheet = spreadSheet.getActiveSheet();
+  spreadSheet.renameActiveSheet('Data');
+}
+var logSheet = spreadSheet.getSheetByName('Log') || spreadSheet.insertSheet('Log');
+
 var timestamp = new Date().toLocaleString();
    
 var existingData = [];
@@ -166,7 +173,7 @@ function __main() {
   else {
     logSheet.getRange( logSheet.getLastRow()+1, 1, newsLog.length, newsLog[0].length ).setValues( newsLog );
     if ( email ) {
-      MailApp.sendEmail( email, 'Decodecodex has changed', SpreadsheetApp.getActiveSpreadsheet().getUrl() );
+      MailApp.sendEmail( email, 'Decodecodex has changed', spreadSheet.getUrl() );
     }
   }
   
