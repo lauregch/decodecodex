@@ -26,6 +26,8 @@ var existingData = [];
 var newsLog = [];
 var colors = [];
 
+var updated = false;
+
 
 
 function startsWith( haystack, needle ) {
@@ -33,6 +35,7 @@ function startsWith( haystack, needle ) {
 }
 
 function addLog( dataArray ) {
+  updated = true;
   newsLog.push( [timestamp].concat(dataArray) );
 }
 
@@ -157,12 +160,15 @@ function __main() {
   if ( dataSheet.getLastRow() ) {
     existingData = dataSheet.getRange( dataSheet.getFrozenRows()+1, 1, dataSheet.getLastRow(), dataSheet.getLastColumn() ).getValues();
   }
+  var lastUpdate = dataSheet.getRange('B2').getValue();
   
   var newdata = fetchDecodexData();
   dataSheet.clear();
   dataSheet.getRange('A1:B1').setValues([['Last refresh', timestamp]]);
-  dataSheet.getRange('A2:B2').setValues([['Source code', github]]);
-  dataSheet.setFrozenRows(2);
+  dataSheet.getRange('A2').setValue('Last update');
+  dataSheet.getRange('B2').setValue( lastUpdate );
+  dataSheet.getRange('A3:B3').setValues([['Source code', github]]);
+  dataSheet.setFrozenRows(3);
   dataSheet.getRange( dataSheet.getFrozenRows()+1, 1, newdata.length, newdata[0].length ).setValues( newdata );
   
   logSheet.setFrozenRows(1);
@@ -173,8 +179,12 @@ function __main() {
   else {
     logSheet.getRange( logSheet.getLastRow()+1, 1, newsLog.length, newsLog[0].length ).setValues( newsLog );
     if ( email ) {
-      MailApp.sendEmail( email, 'Decodecodex has changed', spreadSheet.getUrl() );
+      MailApp.sendEmail( email, 'Decodecodex has changed', SpreadsheetApp.getActiveSpreadsheet().getUrl() );
     }
+  }
+  
+  if ( updated ) {
+    dataSheet.getRange('B2').setValue(timestamp);
   }
   
   prettify();
